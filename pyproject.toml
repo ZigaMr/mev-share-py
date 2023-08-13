@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "mev-share-py"
+version = "0.1.0"
+description = "Python client library for interacting with flashbots mev-share node"
+authors = ["Ziga Mrzljak <ziga.mrzljak@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+web3 = "^6.8.0"
+asyncio = "^3.4.3"
+requests = "^2.31.0"
+eth-account = "^0.9.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
