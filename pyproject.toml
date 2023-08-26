@@ -5,12 +5,14 @@ description = "Python client library for interacting with flashbots mev-share no
 authors = ["Ziga Mrzljak <ziga.mrzljak@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 web3 = "^6.8.0"
 asyncio = "^3.4.3"
 requests = "^2.31.0"
 eth-account = "^0.9.0"
 aiohttp-sse-client = "^0.2.1"
+pylint = "^2.17.5"
+black = "^23.7.0"
 
 [tool.poetry.dev-dependencies]
 
