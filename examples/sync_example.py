@@ -1,30 +1,34 @@
+"""
+Synchronous Event Stream Example,
+prints out the first 5 characters of the block hash for each event.
+"""
 
-from web3 import Web3
-import requests
 import json
 import datetime as dt
-import time
+import traceback
+import requests
 
 # rpc_url = "https://ethereum-goerli.publicnode.com"
-sse_url = "https://mev-share.flashbots.net/"
 # relay_url = "https://relay-goerli.flashbots.net/"
+# w3 = Web3(Web3.HTTPProvider(RPC_URL))
+SSE_URL = "https://mev-share.flashbots.net/"
 
-# w3 = Web3(Web3.HTTPProvider(rpc_url))
 
-def event_stream(url):
-    with requests.get(url, stream=True) as response:
+def event_stream(url: str) -> bytes:
+    """
+    Generator function for getting events from the MEV-Share event stream.
+    :param url: The url of the event stream.
+    :return:
+    """
+    with requests.get(url, stream=True, timeout=100) as response:
         for line in response.iter_lines():
             if line:  # filter out keep-alive new lines
                 yield line
 
-
-for events in event_stream(sse_url):
-    try:
-        data = json.loads(events[5:])
-        print(data['hash'][:5], dt.datetime.now())
-        time.sleep(.1)
-    except:
-        continue
-    # print("==================")
-
-
+if __name__ == '__main__':
+    for event in event_stream(SSE_URL):
+        try:
+            data = json.loads(event[5:])
+            print(data['hash'][:5], dt.datetime.now())
+        except: # pylint: disable=bare-except
+            traceback.print_exc()
