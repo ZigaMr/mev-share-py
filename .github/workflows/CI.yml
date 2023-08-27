@@ -28,12 +28,13 @@ jobs:
       #-----------------------#
       #  Run your actual job  #
       #-----------------------#
+      - name: Use code formatters
+        run: |
+          poetry run black .
 #      - name: Run tests
 #        run: |
 #          poetry run pytest
       - name: Analysing the code with pylint
         run: |
           poetry run pylint $(git ls-files '*.py')
-      - name: Use code formatters
-        run: |
-          black
+

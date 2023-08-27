@@ -11,6 +11,7 @@ from mev_share_py.event_stream import SSEClient
 
 
 if __name__ == "__main__":
+
     async def handle_event(event_data: MessageEvent) -> None:
         """
         Custom function to be called for each event.
@@ -18,9 +19,10 @@ if __name__ == "__main__":
         :return: None
         """
         data = json.loads(event_data.data)
-        print("Received Event:", data['hash'][:5], dt.datetime.now())
-
+        print("Received Event:", data["hash"][:5], dt.datetime.now())
 
     STREAM_URL = "https://mev-share.flashbots.net/"
     SSE_CLIENT = SSEClient(STREAM_URL)
-    res = asyncio.run(SSE_CLIENT.listen_for_events(handle_event), )
+    res = asyncio.run(
+        SSE_CLIENT.listen_for_events(handle_event),
+    )

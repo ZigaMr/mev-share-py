@@ -25,10 +25,11 @@ def event_stream(url: str) -> bytes:
             if line:  # filter out keep-alive new lines
                 yield line
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     for event in event_stream(SSE_URL):
         try:
             data = json.loads(event[5:])
-            print(data['hash'][:5], dt.datetime.now())
-        except: # pylint: disable=bare-except
+            print(data["hash"][:5], dt.datetime.now())
+        except:  # pylint: disable=bare-except
             traceback.print_exc()

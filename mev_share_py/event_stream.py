@@ -6,6 +6,7 @@ import asyncio
 from typing import List, Dict, Any, Callable
 import urllib.parse
 import requests
+
 # TODO: Migrate from aiohttp_sse_client to aiohttp-sse
 from aiohttp_sse_client.client import EventSource, MessageEvent
 from aiohttp import ClientSession, ClientTimeout
@@ -42,9 +43,9 @@ class SSEClient:
             total=None
         )  # Prevents aiohttp default timeout (300 seconds)
         async with EventSource(
-                self.stream_url,
-                reconnection_time=self.reconnection_time,
-                session=ClientSession(timeout=session_timeout),
+            self.stream_url,
+            reconnection_time=self.reconnection_time,
+            session=ClientSession(timeout=session_timeout),
         ) as event_source:
             async for event in event_source:
                 yield event
