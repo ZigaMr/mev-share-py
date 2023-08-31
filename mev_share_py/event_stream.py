@@ -10,6 +10,7 @@ import requests
 # TODO: Migrate from aiohttp_sse_client to aiohttp-sse
 from aiohttp_sse_client.client import EventSource, MessageEvent
 from aiohttp import ClientSession, ClientTimeout
+from web3 import Web3, Account
 
 
 class SSEClient:
@@ -17,9 +18,12 @@ class SSEClient:
     Client library for interacting with the MEV-Share event stream.
     """
 
-    def __init__(self, stream_url: str):
+    def __init__(self,
+                 stream_url: str = "https://mev-share.flashbots.net/",
+                 private_key: str = None):
         self.stream_url = stream_url
         self.reconnection_time = 5
+        self.account = Account.from_key(private_key) if private_key else None
         # self.queue = asyncio.
 
     async def __get_historical_data(self, url_suffix: str) -> Any:
@@ -43,9 +47,9 @@ class SSEClient:
             total=None
         )  # Prevents aiohttp default timeout (300 seconds)
         async with EventSource(
-            self.stream_url,
-            reconnection_time=self.reconnection_time,
-            session=ClientSession(timeout=session_timeout),
+                self.stream_url,
+                reconnection_time=self.reconnection_time,
+                session=ClientSession(timeout=session_timeout),
         ) as event_source:
             async for event in event_source:
                 yield event
@@ -59,14 +63,12 @@ class SSEClient:
         async for event_data in self._get_events():
             try:
                 asyncio.create_task(event_callback(event_data))
-            except asyncio.TimeoutError as e:
-                print(e)
-                continue
+            except asyncio.TimeoutError:
+                print('Timeout Error')
             except Exception as e:  # pylint: disable=broad-except
                 print(e)
-                continue
 
-    async def get_event_history_info(self) -> List:
+    async def get_event_history_info(self) -> Dict:
         """
         Fetch event history parameters by making an HTTP GET request
         to the instance’s streamUrl at the /api/v1/history/info endpoint.
