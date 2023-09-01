@@ -16,3 +16,5 @@ class RPCClient:
                               method):
         headers, signature, body = await get_rpc_request(params, method, self.account)
         return requests.post(url=self.api_url, data=body,headers=headers).json()
+
+    async def on_transaction(self):

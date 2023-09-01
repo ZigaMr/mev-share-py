@@ -10,7 +10,9 @@ import requests
 # TODO: Migrate from aiohttp_sse_client to aiohttp-sse
 from aiohttp_sse_client.client import EventSource, MessageEvent
 from aiohttp import ClientSession, ClientTimeout
+from api.events import EventHistoryParams, PendingTransaction, PendingBundle
 from web3 import Web3, Account
+import json
 
 
 class SSEClient:
@@ -54,15 +56,65 @@ class SSEClient:
             async for event in event_source:
                 yield event
 
-    async def listen_for_events(self, event_callback: Callable[[str], None]) -> None:
+    async def _on_transaction(self,
+                              event: Dict,
+                              event_callback: Callable[[MessageEvent], None]) -> Any:
+        """
+        Filters for transaction type events.
+        :param event: Message Event from the event stream.
+        :param event_callback: Callback function to be called for each filtered event.
+        :return: None
+        """
+        if event['txs'] and len(event['txs']) == 1:
+            tx = {
+                "hash": event['hash'],
+                "logs": event['logs'],
+                "to": event['txs'][0]['to'],
+                "function_selector": event['txs'][0]['functionSelector'] if 'functionSelector' in event['txs'][0] else None,
+                "call_data": event['txs'][0]['callData'] if 'callData' in event['txs'][0] else None,
+                "mev_gas_price": event['txs'][0]['mevGasPrice'] if 'mevGasPrice' in event['txs'][0] else None,
+                "gas_used": event['txs'][0]['gasUsed'] if 'gasUsed' in event['txs'][0] else None,
+            }
+            return await event_callback(PendingTransaction(**tx))
+
+    async def _on_bundle(self,
+                         event: Dict,
+                         event_callback: Callable[[MessageEvent], None]) -> Any:
+        """
+        Filters for bundle type events.
+        :param event: Message Event from the event stream.
+        :param event_callback: Callback function to be called for each filtered event.
+        :return: None
+        """
+        if event['txs'] and len(event['txs']) == 1:
+            bundle = {
+                "hash": event['hash'],
+                "logs": event['logs'],
+                "txs": event['txs'],
+                "mev_gas_price": event['mevGasPrice'] if 'mevGasPrice' in event else None,
+                "gas_used": event['gasUsed'] if 'gasUsed' in event else None,
+            }
+            return await event_callback(PendingBundle(event))
+
+    async def listen_for_events(self,
+                                event_type: str,
+                                event_callback: Callable[[MessageEvent], None]) -> None:
         """
         Wrapper for _get_events that calls the event_callback function for each event.
         :param event_callback: Custom function to be called for each event.
         :return: None
         """
+
+        if event_type == "transaction":
+            event_handler = self._on_transaction
+        elif event_type == "bundle":
+            event_handler = self._on_bundle
+        else:
+            raise NotImplementedError("Invalid event type. Must be 'transaction' or 'bundle'.")
+
         async for event_data in self._get_events():
             try:
-                asyncio.create_task(event_callback(event_data))
+                asyncio.create_task(event_handler(json.loads(event_data.data), event_callback))
             except asyncio.TimeoutError:
                 print('Timeout Error')
             except Exception as e:  # pylint: disable=broad-except
