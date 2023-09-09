@@ -65,17 +65,27 @@ class SSEClient:
         :param event_callback: Callback function to be called for each filtered event.
         :return: None
         """
-        if event['txs'] and len(event['txs']) == 1:
+        if not event['txs']:
             tx = {
                 "hash": event['hash'],
-                "logs": event['logs'],
-                "to": event['txs'][0]['to'],
+                "logs": event['logs'] if 'logs' in event else None,
+                "to": None,
+                "function_selector": None,
+                "call_data": None,
+                "mev_gas_price": None,
+                "gas_used": None,
+            }
+        elif len(event['txs']) == 1:
+            tx = {
+                "hash": event['hash'],
+                "logs": event['logs'] if 'logs' in event else None,
+                "to": event['txs'][0]['to'] if 'to' in event['txs'][0] else None,
                 "function_selector": event['txs'][0]['functionSelector'] if 'functionSelector' in event['txs'][0] else None,
                 "call_data": event['txs'][0]['callData'] if 'callData' in event['txs'][0] else None,
                 "mev_gas_price": event['txs'][0]['mevGasPrice'] if 'mevGasPrice' in event['txs'][0] else None,
                 "gas_used": event['txs'][0]['gasUsed'] if 'gasUsed' in event['txs'][0] else None,
             }
-            return await event_callback(PendingTransaction(**tx))
+        return await event_callback(PendingTransaction(**tx))
 
     async def _on_bundle(self,
                          event: Dict,
@@ -86,15 +96,15 @@ class SSEClient:
         :param event_callback: Callback function to be called for each filtered event.
         :return: None
         """
-        if event['txs'] and len(event['txs']) == 1:
+        if event['txs'] and len(event['txs']) > 1:
             bundle = {
                 "hash": event['hash'],
-                "logs": event['logs'],
+                "logs": event['logs'] if 'logs' in event else None,
                 "txs": event['txs'],
                 "mev_gas_price": event['mevGasPrice'] if 'mevGasPrice' in event else None,
                 "gas_used": event['gasUsed'] if 'gasUsed' in event else None,
             }
-            return await event_callback(PendingBundle(event))
+            return await event_callback(PendingBundle(**bundle))
 
     async def listen_for_events(self,
                                 event_type: str,

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, TypedDict
 
 
 @dataclass
@@ -39,3 +39,24 @@ class PendingBundle:
     txs: Optional[List] = None
     mev_gas_price: Optional[int] = None
     gas_used: Optional[int] = None
+
+
+HintPreferences = TypedDict(
+    'HintPreferences',
+    {
+        'call_data': Optional[bool],
+        'contract_address': Optional[bool],
+        'function_selector': Optional[bool],
+        'logs': Optional[bool],
+        'tx_hash': Optional[bool]
+    }
+)
+
+TransactionOptions = TypedDict(
+    'TransactionOptions',
+    {
+        'hints': Optional[HintPreferences],
+        'max_block_number': Optional[int],
+        'builders': Optional[List[str]]
+    }
+)

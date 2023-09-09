@@ -19,10 +19,11 @@ if __name__ == "__main__":
         :param event_data: Message Event from the event stream.
         :return: None
         """
-        print("Received Event:", event_data["hash"][:5], dt.datetime.now())
+        print("Received Event:", event_data, dt.datetime.now())
 
-    STREAM_URL = "https://mev-share.flashbots.net/"
+    # STREAM_URL = "https://mev-share.flashbots.net/"
+    STREAM_URL = "https://mev-share-goerli.flashbots.net/" # Goerli
     SSE_CLIENT = SSEClient(STREAM_URL)
     res = asyncio.run(
-        SSE_CLIENT.listen_for_events('transaction', handle_event),
+    SSE_CLIENT.listen_for_events('transaction', handle_event),
     )
