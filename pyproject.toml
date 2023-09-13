@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mev-share-py"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python client library for interacting with flashbots mev-share node"
 authors = ["Ziga Mrzljak <ziga.mrzljak@gmail.com>"]
 
@@ -13,6 +13,7 @@ eth-account = "^0.9.0"
 aiohttp-sse-client = "^0.2.1"
 pylint = "^2.17.5"
 black = "^23.7.0"
+rlp = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
 

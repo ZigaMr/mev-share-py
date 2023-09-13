@@ -85,6 +85,8 @@ class SSEClient:
                 "mev_gas_price": event['txs'][0]['mevGasPrice'] if 'mevGasPrice' in event['txs'][0] else None,
                 "gas_used": event['txs'][0]['gasUsed'] if 'gasUsed' in event['txs'][0] else None,
             }
+        else:
+            return
         return await event_callback(PendingTransaction(**tx))
 
     async def _on_bundle(self,
@@ -123,6 +125,7 @@ class SSEClient:
             raise NotImplementedError("Invalid event type. Must be 'transaction' or 'bundle'.")
 
         async for event_data in self._get_events():
+            print(event_data)
             try:
                 asyncio.create_task(event_handler(json.loads(event_data.data), event_callback))
             except asyncio.TimeoutError:

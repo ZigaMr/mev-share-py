@@ -1,6 +1,5 @@
 from typing import Optional, Dict, List, TypedDict
-from api.events import TransactionOptions
-
+from api.types import TransactionOptions, HintPreferences, BundleParams
 
 
 def munge_hint_preferences(hints: HintPreferences) -> Dict[str, any]:
@@ -14,49 +13,63 @@ def munge_hint_preferences(hints: HintPreferences) -> Dict[str, any]:
         # setting all hints except hash to False will enable full privacy
     }
 
-def extract_specified_hints(hints: HintPreferences) -> List[str]:
-    return [key for key, value in munge_hint_preferences(hints).items() if value]
 
 def munge_private_tx_params(signed_tx: str,
                             options: Optional[TransactionOptions] = None) -> List[Dict[str, any]]:
     params = {
         "tx": signed_tx,
-        "maxBlockNumber": options['max_block_number'] if options and options['max_block_number'] else None,
+        "maxBlockNumber": hex(options.get('max_block_number')) if options else None,
         "preferences": {
             "fast": True,  # deprecated but required; setting has no effect
             # privacy uses the default (Stable) config if no hints specified
-            "privacy": {"hints": extract_specified_hints(options.hints)} if options and options.hints else None,
-            "builders": options.builders if options and options.builders else None,
+            "privacy":
+                {
+                    "hints": [k for k, v in dict(options.get('hints'), **{'hash': True}).items() if
+                              v] if options and options.get('hints') else None,
+                    "builders": options.get('builders') if options else None
+                }
+
         },
     }
+    # if options and options.get('max_block_number'):
+    #     params["maxBlockNumber"] = hex(options.get('max_block_number'))
+    # if options and options.get('hints'):
+    #     params["preferences"]["privacy"] = {"hints": [k for k, v in options.get('hints').items() if v]}
+    # if options and options.get('builders'):
+    #     params["preferences"]["builders"] = options.get('builders')
     return [params]
 
-def munge_bundle_params(params: BundleParams) -> Dict[str, any]:
 
-    munged_bundle = [munge_bundle_params(item) for item in params["body"] if item["type"] == "bundle"]
+def munge_bundle_params(params: BundleParams) -> List[Dict[str, any]]:
+    munged_bundle = [{'bundle': munge_bundle_params(item)} if "bundle" in item.keys() else item for item in
+                     params.get("body")]
 
-    return {
-        **params,
-        "body": munged_bundle,
+    return [{
+        # **params,
         "version": params.get("version", "v0.1"),
         "inclusion": {
-            **params["inclusion"],
+            # **params["inclusion"],
             "block": f"0x{params['inclusion']['block']:x}",
-            "maxBlock": f"0x{params['inclusion']['maxBlock']:x}" if "maxBlock" in params["inclusion"] else None,
+            "maxBlock": f"0x{params['inclusion']['max_block']:x}" if "max_block" in params["inclusion"] else None,
         },
+        "body": munged_bundle,
         "validity": params.get("validity", {"refund": [], "refundConfig": []}),
-        "privacy": {
-            **params["privacy"],
-            "hints": extract_specified_hints(params["privacy"]["hints"]) if "hints" in params["privacy"] else None,
-        } if "privacy" in params else None
-    }
+        "privacy":
+            {
+                "hints": [k for k, v in dict(params["privacy"].get('hints'), **{'hash': True}).items() if
+                          v] if params["privacy"] and params["privacy"].get('hints') else None,
+                "builders": params["privacy"].get('builders') if params["privacy"] else None
+            }
+    }]
 
-def munge_sim_bundle_options(params: SimBundleOptions) -> Dict[str, any]:
+
+def munge_sim_bundle_options(params) -> Dict[str, any]:
     return {
-        **params,
-        "parentBlock": f"0x{params['parentBlock']:x}" if "parentBlock" in params else None,
-        "blockNumber": f"0x{params['blockNumber']:x}" if "blockNumber" in params else None,
-        "timestamp": f"0x{params['timestamp']:x}" if "timestamp" in params else None,
-        "gasLimit": f"0x{params['gasLimit']:x}" if "gasLimit" in params else None,
-        "baseFee": f"0x{params['baseFee']:x}" if "baseFee" in params else None,
+        "parentBlock": hex(params['parentBlock']) if "parentBlock" in params else None,
+        "blockNumber": hex(params['blockNumber']) if "blockNumber" in params else None,
+        "coinbase": params['coinbase'] if "coinbase" in params else None,
+        "timestamp": hex(params['timestamp']) if "timestamp" in params else None,
+        "gasLimit": hex(params['gasLimit']) if "gasLimit" in params else None,
+        "baseFee": hex(params['baseFee']) if "baseFee" in params else None,
+        "timeout": hex(params['timeout']) if "timeout" in params else None,
     }
