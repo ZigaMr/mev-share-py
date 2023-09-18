@@ -11,23 +11,13 @@ from eth_account import Account
 from api.types import BundleParams, TransactionOptions
 from api.events import EventHistoryParams, PendingTransaction, PendingBundle
 import datetime as dt
-from event_stream import SSEClient
-
-#  Mainnet
-# relay_url = "https://api.mev-share.com/api/v1/"
-# SSE_URL = "https://mev-share.flashbots.net/"
-
-# Goerli
-# sse_url = "https://mev-share-goerli.flashbots.net/"
-relay_url = "https://relay-goerli.flashbots.net/"
+from client import MevShareClient
 
 config = json.load(open('../mev_share_py/config.json'))
 
 infura_ws_url = "wss://goerli.infura.io/ws/v3/{}".format(config['infura_key'])
 infura_http_url = "https://goerli.infura.io/v3/{}".format(config['infura_key'])
 web3 = Web3(Web3.HTTPProvider(infura_http_url))
-# web3 = Web3(Web3.HTTPProvider('https://eth-goerli.g.alchemy.com/v2/QzYkkPfRETsHrZi_7yU24R1tksKPb2x5'))
-
 
 async def handle_event(event_data: PendingTransaction) -> None:
     """
@@ -83,9 +73,9 @@ async def get_event():
         await ws.send('{"jsonrpc": "2.0", "id": 5, "method": "eth_subscribe", "params": ["newPendingTransactions"]}')
         subscription_response = await ws.recv()
         print(subscription_response)
-        client = RPCClient(api_url=relay_url,
-                           private_key=config['sign_key'],
-                           node_url=infura_http_url)
+        client = MevShareClient(api_url=config['relay_url_mainnet'],
+                                stream_url=config['sse_url_mainnet'],
+                                sign_key=config['sign_key'])
 
         while True:
             try:
@@ -97,8 +87,8 @@ async def get_event():
                 tx2 = new_tx()
                 params = {
                     'inclusion': {
-                        'block': web3.eth.block_number+1,
-                        'max_block': web3.eth.block_number+10,
+                        'block': web3.eth.block_number + 1,
+                        'max_block': web3.eth.block_number + 10,
                     },
                     'body': [{'hash': txHash, 'canRevert': True},
                              {'tx': tx2.rawTransaction.hex(), 'canRevert': True}],

@@ -7,13 +7,7 @@ from client_rpc import RPCClient
 from web3 import Web3
 from eth_account import Account
 
-#  Mainnet
-# relay_url = "https://api.mev-share.com/api/v1/"
-# SSE_URL = "https://mev-share.flashbots.net/"
-# relay_url = "https://relay.flashbots.net"
-# Goerli
-# sse_url = "https://mev-share-goerli.flashbots.net/"
-relay_url = "https://relay-goerli.flashbots.net/"
+
 
 config = json.load(open('../mev_share_py/config.json'))
 
@@ -66,7 +60,7 @@ async def get_event():
         await ws.send('{"jsonrpc": "2.0", "id": 5, "method": "eth_subscribe", "params": ["newPendingTransactions"]}')
         subscription_response = await ws.recv()
         print(subscription_response)
-        client = RPCClient(api_url=relay_url, private_key=config['sign_key'])
+        client = RPCClient(api_url=config['relay_url_goerli'], private_key=config['sign_key'])
 
         while True:
             try:
@@ -92,7 +86,8 @@ async def get_event():
 
 
 async def loop_tx():
-    client = RPCClient(api_url=relay_url, private_key=config['sign_key'])
+    client = RPCClient(api_url=config['relay_url_goerli'],
+                       sign_key=config['sign_key'])
     while True:
         tx = new_tx()
         print(tx)
@@ -107,5 +102,5 @@ async def loop_tx():
 
 
 if __name__ == "__main__":
-    tx = asyncio.run(get_event())
+    tx = asyncio.run(loop_tx())
     print(tx)

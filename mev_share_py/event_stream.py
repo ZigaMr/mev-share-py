@@ -6,6 +6,7 @@ import asyncio
 from typing import List, Dict, Any, Callable
 import urllib.parse
 import requests
+import sys
 
 # TODO: Migrate from aiohttp_sse_client to aiohttp-sse
 from aiohttp_sse_client.client import EventSource, MessageEvent
@@ -15,18 +16,17 @@ from web3 import Web3, Account
 import json
 
 
-class SSEClient:
+class SSEClient(object):
     """
     Client library for interacting with the MEV-Share event stream.
     """
 
     def __init__(self,
-                 stream_url: str = "https://mev-share.flashbots.net/",
-                 private_key: str = None):
+                 stream_url: str,
+                 **kwargs):
         self.stream_url = stream_url
         self.reconnection_time = 5
-        self.account = Account.from_key(private_key) if private_key else None
-        # self.queue = asyncio.
+        super().__init__(**kwargs)
 
     async def __get_historical_data(self, url_suffix: str) -> Any:
         """
@@ -45,6 +45,7 @@ class SSEClient:
         Async generator for getting events from the MEV-Share event stream.
         :return: Message Event from the event stream.
         """
+
         session_timeout = ClientTimeout(
             total=None
         )  # Prevents aiohttp default timeout (300 seconds)
@@ -113,6 +114,7 @@ class SSEClient:
                                 event_callback: Callable[[MessageEvent], None]) -> None:
         """
         Wrapper for _get_events that calls the event_callback function for each event.
+        :param event_type: Type of event to filter for.
         :param event_callback: Custom function to be called for each event.
         :return: None
         """

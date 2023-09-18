@@ -12,16 +12,17 @@ from typing import Dict, Any, List, Callable, Union
 from api.mungers import munge_private_tx_params, munge_bundle_params, munge_sim_bundle_options
 
 
-class RPCClient:
+class RPCClient(object):
     def __init__(self,
-                 api_url: str = "https://api.mev-share.com/api/v1/",
-                 # TODO: remove hardcoded mainnet url for safety reasons
-                 private_key: str = None,
-                 node_url: str = None):
+                 api_url: str,
+                 sign_key: str = None,
+                 node_url: str = None,
+                 **kwargs):
         self.api_url = api_url
-        self.account = Account.from_key(private_key) if private_key else None
+        self.account = Account.from_key(sign_key) if sign_key else None
         self.w3 = Web3(Web3.HTTPProvider(node_url)) if node_url else None
         self.w3_async = Web3(Web3.AsyncHTTPProvider(node_url), modules={'eth': (eth.AsyncEth,)}, middlewares=[])
+        super().__init__(**kwargs)
 
     async def __handle_request(self,
                                params,
@@ -51,9 +52,9 @@ class RPCClient:
                                options: TransactionOptions) -> str:
         """
 
-        :param signed_tx:
-        :param options:
-        :return:
+        :param signed_tx: Signed transaction (hex string)
+        :param options: Transaction options
+        :return: Transaction hash
         """
         munger_params = munge_private_tx_params(signed_tx, options)
         # res = await self.__handle_request(munger_params, "eth_sendRawTransaction")
@@ -62,8 +63,8 @@ class RPCClient:
     async def send_bundle(self, params: BundleParams) -> str:
         """
         
-        :param params: 
-        :return: 
+        :param params:  Bundle parameters
+        :return:  Transaction hash
         """
         munger_params = munge_bundle_params(params)
         # res = await self.__handle_request(munger_params, "eth_sendRawTransaction")
@@ -75,9 +76,10 @@ class RPCClient:
                               timeout_seconds: int = 60) -> str:
         """
 
-        :param params:
-        :param sim_options:
-        :return:
+        :param params: Bundle parameters
+        :param sim_options: Simulation options
+        :param timeout_seconds: Timeout in seconds
+        :return: Transaction hash
         """
         first_tx = params['body'][0]
         if 'hash' in first_tx:
@@ -85,7 +87,7 @@ class RPCClient:
                 "Transaction hash: " + first_tx['hash'] + " must appear onchain before simulation is possible, waiting")
             if not self.w3_async:
                 raise Exception("Node URL must be provided to simulate bundle")
-            tx = self.w3.eth.wait_for_transaction_receipt(first_tx['hash'], timeout=timeout_seconds)
+            # tx = self.w3.eth.wait_for_transaction_receipt(first_tx['hash'], timeout=timeout_seconds)
             tx = await self.w3_async.eth.get_transaction(first_tx['hash'])
             signed_tx = self._rlp_encode(tx)
             # if tx.status != 1:

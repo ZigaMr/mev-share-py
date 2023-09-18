@@ -8,22 +8,25 @@ import datetime as dt
 import asyncio
 from aiohttp_sse_client.client import MessageEvent
 from mev_share_py.event_stream import SSEClient
+from client import MevShareClient
 from api.events import EventHistoryParams, PendingTransaction, PendingBundle
+
+
+async def handle_event(event_data: PendingTransaction) -> None:
+    """
+    Custom function to be called for each event.
+    :param event_data: Message Event from the event stream.
+    :return: None
+    """
+    print("Received Event:", event_data, dt.datetime.now())
 
 
 if __name__ == "__main__":
 
-    async def handle_event(event_data: PendingTransaction) -> None:
-        """
-        Custom function to be called for each event.
-        :param event_data: Message Event from the event stream.
-        :return: None
-        """
-        print("Received Event:", event_data, dt.datetime.now())
-
     # STREAM_URL = "https://mev-share.flashbots.net/"
-    STREAM_URL = "https://mev-share-goerli.flashbots.net/" # Goerli
+    STREAM_URL = "https://mev-share-goerli.flashbots.net/"  # Goerli
     SSE_CLIENT = SSEClient(STREAM_URL)
+    client = MevShareClient(stream_url=STREAM_URL)
     res = asyncio.run(
-    SSE_CLIENT.listen_for_events('transaction', handle_event),
+        client.listen_for_events('transaction', handle_event),
     )
