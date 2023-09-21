@@ -6,13 +6,11 @@ import asyncio
 from typing import List, Dict, Any, Callable
 import urllib.parse
 import requests
-import sys
 
 # TODO: Migrate from aiohttp_sse_client to aiohttp-sse
 from aiohttp_sse_client.client import EventSource, MessageEvent
 from aiohttp import ClientSession, ClientTimeout
-from api.events import EventHistoryParams, PendingTransaction, PendingBundle
-from web3 import Web3, Account
+from api.events import PendingTransaction, PendingBundle
 import json
 
 
@@ -30,7 +28,7 @@ class SSEClient(object):
 
     async def __get_historical_data(self, url_suffix: str) -> Any:
         """
-        Private method for getting historical data from the MEV-Share API.
+        Protected method for getting historical data from the MEV-Share API.
         :param url_suffix: The url suffix to be appended to the base url.
         :return: Dictionary of historical data.
         """
@@ -111,11 +109,11 @@ class SSEClient(object):
 
     async def listen_for_events(self,
                                 event_type: str,
-                                event_callback: Callable[[MessageEvent], None]) -> None:
+                                event_callback: Callable[[PendingTransaction, PendingBundle], None]) -> None:
         """
         Wrapper for _get_events that calls the event_callback function for each event.
         :param event_type: Type of event to filter for.
-        :param event_callback: Custom function to be called for each event.
+        :param event_callback: Custom function to be called for each event. Receives either a PendingTransaction or PendingBundle object.
         :return: None
         """
 
@@ -155,7 +153,6 @@ class SSEClient(object):
         query = "&".join([f"{key}={value}" for key, value in _params.items()])
 
         res: List = await self.__get_historical_data("history" + f"?{query}")
-        # return [EventHistoryEntry(entry) for entry in res]
         return res
 
 

@@ -86,8 +86,10 @@ async def get_event():
 
 
 async def loop_tx():
-    client = RPCClient(api_url=config['relay_url_goerli'],
-                       sign_key=config['sign_key'])
+    client = RPCClient(
+        api_url=config['relay_url_goerli'],
+        sign_key=config['sign_key']
+    )
     while True:
         tx = new_tx()
         print(tx)

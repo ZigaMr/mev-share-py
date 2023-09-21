@@ -72,8 +72,7 @@ class RPCClient(object):
 
     async def simulate_bundle(self,
                               params: BundleParams,
-                              sim_options: SimBundleOptions,
-                              timeout_seconds: int = 60) -> str:
+                              sim_options: SimBundleOptions) -> str:
         """
 
         :param params: Bundle parameters

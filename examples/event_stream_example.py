@@ -3,13 +3,11 @@ Async event stream example,
 prints out the first 5 characters of the block hash for each event.
 """
 
-import json
 import datetime as dt
 import asyncio
-from aiohttp_sse_client.client import MessageEvent
 from mev_share_py.event_stream import SSEClient
 from client import MevShareClient
-from api.events import EventHistoryParams, PendingTransaction, PendingBundle
+from api.events import PendingTransaction
 
 
 async def handle_event(event_data: PendingTransaction) -> None:
