@@ -1,0 +1,16 @@
+{
+  "mainnet": {
+    "relay_url": "https://relay.flashbots.net",
+    "sse_url": "https://mev-share.flashbots.net/",
+    "infura_url": "https://mainnet.infura.io/v3/{}"
+  },
+  "goerli": {
+    "relay_url": "https://relay-goerli.flashbots.net/",
+    "sse_url": "https://mev-share-goerli.flashbots.net/",
+    "infura_url": "https://goerli.infura.io/v3/{}"
+  },
+  "infura_key": "123",
+  "private_key": "0x01",
+  "sign_key": "0x01",
+  "to": "0x01"
+}

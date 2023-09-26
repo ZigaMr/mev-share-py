@@ -1,4 +1,4 @@
-from typing import List, Optional, TypedDict, NewType, Union, Dict, Any, Callable
+from typing import List, Optional, TypedDict, Union
 
 HintPreferences = TypedDict(
     'HintPreferences',

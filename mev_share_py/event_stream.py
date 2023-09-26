@@ -3,6 +3,7 @@ Library for interacting with the MEV-Share event stream.
 """
 
 import asyncio
+import json
 from typing import List, Dict, Any, Callable
 import urllib.parse
 import requests
@@ -10,11 +11,11 @@ import requests
 # TODO: Migrate from aiohttp_sse_client to aiohttp-sse
 from aiohttp_sse_client.client import EventSource, MessageEvent
 from aiohttp import ClientSession, ClientTimeout
-from api.events import PendingTransaction, PendingBundle
-import json
+from mev_share_py.api.events import PendingTransaction, PendingBundle
 
 
-class SSEClient(object):
+
+class SSEClient:
     """
     Client library for interacting with the MEV-Share event stream.
     """
@@ -32,11 +33,14 @@ class SSEClient(object):
         :param url_suffix: The url suffix to be appended to the base url.
         :return: Dictionary of historical data.
         """
-        # TODO: Add error handling
-        url = urllib.parse.urljoin(self.stream_url, "api/v1/")
-        url = urllib.parse.urljoin(url, url_suffix)
-        data = requests.get(url, timeout=10).json()
-        return data
+        try:
+            url = urllib.parse.urljoin(self.stream_url, "api/v1/")
+            url = urllib.parse.urljoin(url, url_suffix)
+            data = requests.get(url, timeout=10).json()
+            return data
+        except Exception as e: # pylint: disable=broad-except
+            print(e)
+            return
 
     async def _get_events(self) -> MessageEvent:
         """
@@ -79,10 +83,18 @@ class SSEClient(object):
                 "hash": event['hash'],
                 "logs": event['logs'] if 'logs' in event else None,
                 "to": event['txs'][0]['to'] if 'to' in event['txs'][0] else None,
-                "function_selector": event['txs'][0]['functionSelector'] if 'functionSelector' in event['txs'][0] else None,
-                "call_data": event['txs'][0]['callData'] if 'callData' in event['txs'][0] else None,
-                "mev_gas_price": event['txs'][0]['mevGasPrice'] if 'mevGasPrice' in event['txs'][0] else None,
-                "gas_used": event['txs'][0]['gasUsed'] if 'gasUsed' in event['txs'][0] else None,
+                "function_selector":
+                    event['txs'][0]['functionSelector']
+                    if 'functionSelector' in event['txs'][0] else None,
+                "call_data":
+                    event['txs'][0]['callData']
+                    if 'callData' in event['txs'][0] else None,
+                "mev_gas_price":
+                    event['txs'][0]['mevGasPrice']
+                    if 'mevGasPrice' in event['txs'][0] else None,
+                "gas_used":
+                    event['txs'][0]['gasUsed']
+                    if 'gasUsed' in event['txs'][0] else None,
             }
         else:
             return
@@ -109,11 +121,13 @@ class SSEClient(object):
 
     async def listen_for_events(self,
                                 event_type: str,
-                                event_callback: Callable[[PendingTransaction, PendingBundle], None]) -> None:
+                                event_callback: Callable[[PendingTransaction, PendingBundle], None]
+                                ) -> None:
         """
         Wrapper for _get_events that calls the event_callback function for each event.
         :param event_type: Type of event to filter for.
-        :param event_callback: Custom function to be called for each event. Receives either a PendingTransaction or PendingBundle object.
+        :param event_callback: Custom function to be called for each event.
+                    Receives either a PendingTransaction or PendingBundle object.
         :return: None
         """
 
@@ -125,7 +139,6 @@ class SSEClient(object):
             raise NotImplementedError("Invalid event type. Must be 'transaction' or 'bundle'.")
 
         async for event_data in self._get_events():
-            print(event_data)
             try:
                 asyncio.create_task(event_handler(json.loads(event_data.data), event_callback))
             except asyncio.TimeoutError:
@@ -148,7 +161,6 @@ class SSEClient(object):
         :param params: Optional parameters to refine the query.
         :return:
         """
-        # TODO: set params to dataclass type for static analysis
         _params = params or {}
         query = "&".join([f"{key}={value}" for key, value in _params.items()])
 

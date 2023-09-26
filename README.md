@@ -108,7 +108,7 @@ import json
 from client import MevShareClient
 from web3 import Web3
 
-config = json.load(open('../mev_share_py/config.json'))
+config = json.load(open('config.json'))
 
 infura_http_url = "https://goerli.infura.io/v3/{}".format(config['infura_key'])
 web3 = Web3(Web3.HTTPProvider(infura_http_url))
@@ -142,6 +142,7 @@ See [MEV-Share Docs](#https://github.com/flashbots/mev-share/blob/main/src/mev_s
 
 When sending bundles containing only signed transactions, 
 we can share hints by uncommenting the privacy section.
+
 ```python
 import asyncio
 import json
@@ -150,7 +151,7 @@ from api.types import BundleParams
 from client import MevShareClient
 from api.events import PendingTransaction
 
-config = json.load(open('../mev_share_py/config.json'))
+config = json.load(open('config.json'))
 
 infura_ws_url = "wss://goerli.infura.io/ws/v3/{}".format(config['infura_key'])
 infura_http_url = "https://goerli.infura.io/v3/{}".format(config['infura_key'])
@@ -158,10 +159,10 @@ web3 = Web3(Web3.HTTPProvider(infura_http_url))
 
 
 async def build_and_send(tx1: PendingTransaction):
-    tx2 = '0x' # Add raw tx here
+    tx2 = '0x'  # Add raw tx here
     params = {
         'inclusion': {
-            'block': web3.eth.block_number+1,
+            'block': web3.eth.block_number + 1,
             # 'max_block': web3.eth.block_number+10,
         },
         'body': [{'hash': tx1.hash},
@@ -178,6 +179,7 @@ async def build_and_send(tx1: PendingTransaction):
     }
     params = BundleParams(**params)
     return await client.send_bundle(params)
+
 
 client = MevShareClient()
 res = asyncio.run(

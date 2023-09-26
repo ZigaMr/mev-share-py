@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mev-share-py"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python client library for interacting with flashbots mev-share node"
 authors = ["Ziga Mrzljak <ziga.mrzljak@gmail.com>"]
 

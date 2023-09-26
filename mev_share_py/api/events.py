@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, List, TypedDict
+from typing import Optional, List
 
 
 @dataclass
@@ -23,7 +23,7 @@ class PendingTransaction:
     """
     hash: Optional[str] = None
     logs: Optional[List] = None
-    to: Optional[str] = None
+    to: Optional[str] = None # pylint: disable=invalid-name
     function_selector: Optional[str] = None
     call_data: Optional[str] = None
     mev_gas_price: Optional[int] = None
@@ -40,4 +40,3 @@ class PendingBundle:
     txs: Optional[List] = None
     mev_gas_price: Optional[int] = None
     gas_used: Optional[int] = None
-
