@@ -2,14 +2,12 @@
 
 Client library that interacts with MEV-Share node written in Python 3.10.
 
-Based on [MEV-Share](#https://github.com/flashbots/mev-share).
+Based on [MEV-Share Spec](https://github.com/flashbots/mev-share).
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Configuration](#configuration)
-- [Features](#features)
 - [Examples](#examples)
 - [Contributing](#contributing)
 - [License](#license)
@@ -74,13 +72,13 @@ Add the necessary variables to the config.json file.
   "to": "<your_wallet_address>",
 }
 ```
+
 Import the client and create an instance of the client with the desired network.
 
 ```bash
 from client import MevShareClient
 client = MevShareClient.from_config('goerli', '../config.json')
 ```
-
 
 Client library uses python typeddict to define the types of the data for static analysis.
 Those are not enforced at runtime. So make sure to check the types of parameters and return values.
@@ -89,7 +87,7 @@ The types are defined in ```api/events.py```.
 The library consists of two main parts:
 
 - RPC client that interacts with the MEV-Share node
-- SSE client that listens for events from the MEV-Share node
+- SSE client that listens for events from the [MEV-Share Event Stream](https://docs.flashbots.net/flashbots-mev-share/searchers/event-stream)
 - MevShareClient is a wrapper around both clients.
 
 The library exposes the following public methods:
@@ -151,8 +149,9 @@ if __name__ == "__main__":
 ```
 
 ### send_bundle
+
 Sends a bundle of transactions to the MEV-Share node. Hints and options are passed as a dictionary.
-See [MEV-Share Docs](#https://github.com/flashbots/mev-share/blob/main/src/mev_sendBundle.md) for detailed descriptions of these parameters.
+See [MEV-Share Docs](https://github.com/flashbots/mev-share/blob/main/src/mev_sendBundle.md) for detailed descriptions of these parameters.
 
 When sending bundles containing only signed transactions, 
 we can share hints by uncommenting the privacy section.
@@ -169,11 +168,9 @@ async def build_and_send():
     Generate a bundle with two private transactions and send it.
     :return:
     """
-    tx1 = '<raw_tx1>'
-    tx2 = '<raw_tx2>'
+    user_tx_hash = '<user_tx_hash>'
+    backrun_signed_tx = '<raw_signed_tx>'
     client = MevShareClient.from_config(network='goerli', config_dir='../config.json')
-    tx1 = tx1
-    tx2 = tx2
     block_number = await client.w3_async.eth.block_number
     params = {
         'inclusion': {
@@ -181,8 +178,8 @@ async def build_and_send():
             'max_block': block_number + 10,
         },
         'body': [
-            {'tx': tx1.rawTransaction.hex()},
-            {'tx': tx2.rawTransaction.hex()}],
+            {'hash': user_tx_hash}],
+            {'tx': backrun_signed_tx.hex(), 'can_revert': True}},
         'privacy': {
             'hints': {
                 'tx_hash': True,
@@ -201,7 +198,8 @@ if __name__ == "__main__":
 ```
 
 ### simulate_bundle
-[Simulates](#https://docs.flashbots.net/flashbots-mev-share/searchers/debugging#simulate-your-bundle) a bundle.
+
+[Simulates](https://docs.flashbots.net/flashbots-mev-share/searchers/debugging#simulate-your-bundle) a bundle.
 Similar to send_bundle, but also accepts options to modify block header.
 
 ```python
@@ -251,17 +249,19 @@ if __name__ == "__main__":
 
 ```
 
-
 ### get_event_history_info
+
 Get information about the event history endpoint for use in get_event_history.
 
 ```python
 import asyncio
 from mev_share_py.client import MevShareClient
 client = MevShareClient.from_config('goerli', '../config.json')
-his_info = asyncio.run(client.get_event_history_info())
+history_info = asyncio.run(client.get_event_history_info())
 ```
+
 Returns a dictionary:
+
 ```python
 {
     'count': 2996044,
@@ -274,15 +274,18 @@ Returns a dictionary:
 ```
 
 ### get_event_history
+
 Get historical event stream data for last 100 blocks.
 
 ```python
-params = {"blockStart": his_info['maxBlock'] - 1, "blockEnd": his_info['maxBlock']}
+params = {"blockStart": history_info['maxBlock'] - 1, "blockEnd": history_info['maxBlock']}
 his = asyncio.run(client.get_event_history(params=params))
 ```
 
 ## Examples
-All examples are located in the [```examples```](#/examples) directory.
+
+All examples are located in the [```examples```](./examples) directory.
+
 ## Contributing
 
 ## License
