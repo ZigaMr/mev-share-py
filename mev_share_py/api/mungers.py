@@ -53,8 +53,8 @@ def munge_bundle_params(params: BundleParams) -> List[Dict[str, any]]:
                 "hints":
                     [k for k, v in dict(params["privacy"].get('hints'),
                                         **{'hash': True}).items() if v]
-                    if params["privacy"] and params["privacy"].get('hints') else None,
-                "builders": params["privacy"].get('builders') if params["privacy"] else None
+                    if params.get("privacy") and params["privacy"].get('hints') else None,
+                "builders": params["privacy"].get('builders') if params.get("privacy") else None
             }
     }]
 

@@ -107,8 +107,7 @@ class RPCClient:
             params_with_signed_tx['body'][0] = {'tx': signed_tx}
 
             return await self.__handle_request(
-                [
-                    dict(munge_bundle_params(params_with_signed_tx)[0],
+                [                    dict(munge_bundle_params(params_with_signed_tx)[0],
                          **munge_sim_bundle_options(sim_options))
                 ], "mev_simBundle")
         return await self.__handle_request(

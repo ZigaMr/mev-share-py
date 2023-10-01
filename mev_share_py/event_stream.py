@@ -24,7 +24,7 @@ class SSEClient:
                  stream_url: str,
                  **kwargs):
         self.stream_url = stream_url
-        self.reconnection_time = 5
+        self.reconnection_time = 60
         super().__init__(**kwargs)
 
     async def __get_historical_data(self, url_suffix: str) -> Any:
@@ -98,7 +98,7 @@ class SSEClient:
             }
         else:
             return
-        return await event_callback(PendingTransaction(**tx))
+        return await event_callback(PendingTransaction(**tx), self)
 
     async def _on_bundle(self,
                          event: Dict,
@@ -117,7 +117,7 @@ class SSEClient:
                 "mev_gas_price": event['mevGasPrice'] if 'mevGasPrice' in event else None,
                 "gas_used": event['gasUsed'] if 'gasUsed' in event else None,
             }
-            return await event_callback(PendingBundle(**bundle))
+            return await event_callback(PendingBundle(**bundle), self)
 
     async def listen_for_events(self,
                                 event_type: str,

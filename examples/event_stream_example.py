@@ -9,7 +9,7 @@ from mev_share_py.client import MevShareClient
 from mev_share_py.api.events import PendingTransaction
 
 
-async def handle_event(event_data: PendingTransaction) -> None:
+async def handle_event(event_data: PendingTransaction, client: MevShareClient) -> None:
     """
     Custom function to be called for each event.
     :param event_data: Message Event from the event stream.
@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     # STREAM_URL = "https://mev-share.flashbots.net/"
     STREAM_URL = "https://mev-share-goerli.flashbots.net/"  # Goerli
-    client = MevShareClient.from_config('goerli', '../config.json')
+    client = MevShareClient(stream_url=STREAM_URL)
     res = asyncio.run(
         client.listen_for_events('transaction', handle_event),
     )

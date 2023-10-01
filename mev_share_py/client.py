@@ -3,6 +3,7 @@ from typing import Callable
 import asyncio
 import sys
 from aiohttp_sse_client.client import MessageEvent
+import warnings
 
 from mev_share_py.client_rpc import RPCClient
 from mev_share_py.event_stream import SSEClient
@@ -20,41 +21,22 @@ class MevShareClient(RPCClient, SSEClient):
                  ) -> None:
 
         if sign_key is None:
-            raise KeyError("Either provide correct config.json url or custom sign_key parameter.")
+            warnings.warn("No sign_key parameter provided.")
 
         if node_url is None:
-            raise KeyError("Either provide correct config.json url or custom node_url parameter.")
+            warnings.warn("No node_url parameter provided.")
 
         if api_url is None:
-            raise KeyError("Either provide correct config.json url or custom api_url parameter.")
+            warnings.warn("No api_url parameter provided.")
 
         if stream_url is None:
-            raise KeyError("Either provide correct config.json url or custom stream_url parameter.")
+            warnings.warn("No stream_url parameter provided.")
 
         # Multiple inheritance
-        # When updating parent classes make sure not to use ambiguous keyword arguments
         super().__init__(api_url=api_url,
                          sign_key=sign_key,
                          node_url=node_url,
                          stream_url=stream_url)
-
-    @classmethod
-    def from_config(cls,
-                    network: str = 'goerli',
-                    config_dir: str = 'config.json'):
-        """
-        Class method for initializing the MevShareClient from a config file.
-        :param network: goerli or mainnet (for now)
-        :param config_dir: config.json file path
-        :return: MevShareClient
-        """
-        with open(config_dir, encoding='utf-8') as json_file:
-            config = json.load(json_file)
-        cls.config = config
-        return cls(sign_key=config['sign_key'],
-                   node_url=config[network]['infura_url'].format(config['infura_key']),
-                   api_url=config[network]['relay_url'],
-                   stream_url=config[network]['sse_url'])
 
     async def listen_for_events(self,
                                 event_type: str,

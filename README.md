@@ -34,10 +34,9 @@ poetry install
 
 ## Usage
 
-There are two ways to initalize the client:
 
-#### 1) Using the constructor:
-(throws an error if any keyword argument is missing):
+### Initialize MevShareClient object 
+
 ```bash
 from client import MevShareClient
 client = MevShareClient(api_url='https://relay.flashbots.net/', 
@@ -46,57 +45,31 @@ client = MevShareClient(api_url='https://relay.flashbots.net/',
                         stream_url='https://mev-share.flashbots.net/')
                         )
 ```
-
-#### 2) Using the classmethod ```from_config``` which reads from the head dir config.json file:
-For this to work, you need to pass the network string (currently either 'goerli' or 'mainnet') and config.json file path to the classmethod.
-The ```private_key``` and ```to``` fields are optional, used for easy access by accessing the client.config parameter.
-The private_key is only used in the example files. 
-### It is NOT advisable to store your PROD private key in the config file.
-Add the necessary variables to the config.json file.
-
-```bash
-{
-  "mainnet": {
-    "relay_url": "https://relay.flashbots.net",
-    "sse_url": "https://mev-share.flashbots.net/",
-    "infura_url": "https://mainnet.infura.io/v3/{}"
-  },
-  "goerli": {
-    "relay_url": "https://relay-goerli.flashbots.net/",
-    "sse_url": "https://mev-share-goerli.flashbots.net/",
-    "infura_url": "https://goerli.infura.io/v3/{}"
-  },
-  "infura_key": "<your_infura_key>",
-  "private_key": "<your_private_key>",
-  "sign_key": "<your_sign_key>",
-  "to": "<your_wallet_address>",
-}
-```
-
-Import the client and create an instance of the client with the desired network.
-
-```bash
-from client import MevShareClient
-client = MevShareClient.from_config('goerli', '../config.json')
+Prints a warning if any keyword argument is missing:
+```python
+UserWarning: No api_url parameter provided.
+  warnings.warn("No api_url parameter provided.")
 ```
 
 Client library uses python typeddict to define the types of the data for static analysis.
 Those are not enforced at runtime. So make sure to check the types of parameters and return values.
 The types are defined in ```api/events.py```.
 
-The library consists of two main parts:
+The library consists of three main parts:
 
 - RPC client that interacts with the MEV-Share node
 - SSE client that listens for events from the [MEV-Share Event Stream](https://docs.flashbots.net/flashbots-mev-share/searchers/event-stream)
-- MevShareClient is a wrapper around both clients.
+- MevShareClient is a child class and inherits from both.
 
 The library exposes the following public methods:
 
 ### listen_for_events
 
 Subscribe to the event stream and listen for events of a specific type.
-The method expects type of event (transaction/bundle) and a callback function that will be called when an event is
-received.
+The method expects type of event (string: 'transaction' or 'bundle') and a callback function that will be called when an event is
+received. 
+
+Callback function also receives a reference to the client object, so that it can be used to send transactions or bundles.
 
 ```python
 import asyncio
@@ -104,11 +77,12 @@ from mev_share_py.client import MevShareClient
 from api.events import PendingTransaction
 
 
-def callback_function(event: PendingTransaction):
+def callback_function(event: PendingTransaction, client: MevShareClient):
     print(event)
 
 
-client = MevShareClient.from_config('goerli', '../config.json')
+STREAM_URL = "https://mev-share-goerli.flashbots.net/"  # Goerli
+client = MevShareClient(stream_url=STREAM_URL)
 res = asyncio.run(
     client.listen_for_events('transaction', callback_function),
 )
@@ -127,8 +101,11 @@ raw_tx = '<raw_tx>'  # Add raw tx here
 
 
 async def send_tx(tx: str):
-    client = MevShareClient.from_config(network='goerli', config_dir='../config.json')
-    print(tx)
+    client = MevShareClient(api_url='<RPC_url>', #  "https://relay-goerli.flashbots.net/",
+                            stream_url='<SSE_url>',  #  "https://mev-share-goerli.flashbots.net/",
+                            sign_key='<sign_key>',  #  Private key to sign the bundle
+                            node_url='<node_url>'  #  Geth node url
+                            )
     return await client.send_transaction(
         tx.rawTransaction.hex(),
         {
@@ -170,7 +147,11 @@ async def build_and_send():
     """
     user_tx_hash = '<user_tx_hash>'
     backrun_signed_tx = '<raw_signed_tx>'
-    client = MevShareClient.from_config(network='goerli', config_dir='../config.json')
+    client = MevShareClient(api_url='<RPC_url>', #  "https://relay-goerli.flashbots.net/",
+                            stream_url='<SSE_url>',  #  "https://mev-share-goerli.flashbots.net/",
+                            sign_key='<sign_key>',  #  Private key to sign the bundle
+                            node_url='<node_url>'  #  Geth node url
+                            )
     block_number = await client.w3_async.eth.block_number
     params = {
         'inclusion': {
@@ -178,8 +159,8 @@ async def build_and_send():
             'max_block': block_number + 10,
         },
         'body': [
-            {'hash': user_tx_hash}],
-            {'tx': backrun_signed_tx.hex(), 'can_revert': True}},
+            {'hash': user_tx_hash},
+            {'tx': backrun_signed_tx.hex(), 'can_revert': True}],
         'privacy': {
             'hints': {
                 'tx_hash': True,
@@ -214,19 +195,23 @@ async def sim_private_tx_backrun():
     The "to" address and "private_key" are read from the config.json file.
     :return:
     """
-    tx1 = '<raw_tx1>'
-    tx2 = '<raw_tx2>'
-    client = MevShareClient.from_config(network='goerli', config_dir='../config.json')
-    tx1 = tx1
-    tx2 = tx2
+    user_tx_hash = '<user_tx_hash>'
+    backrun_signed_tx = '<raw_signed_tx>'
+    client = MevShareClient(api_url='<RPC_url>', #  "https://relay-goerli.flashbots.net/",
+                            stream_url='<SSE_url>',  #  "https://mev-share-goerli.flashbots.net/",
+                            sign_key='<sign_key>',  #  Private key to sign the bundle
+                            node_url='<node_url>'  #  Geth node url
+                            )
     block_number = await client.w3_async.eth.block_number
     params = {
         'inclusion': {
             'block': block_number + 1,
             'max_block': block_number + 10
         },
-        'body': [{'tx': tx1.rawTransaction.hex(), 'canRevert': True},
-                 {'tx': tx2.rawTransaction.hex(), 'canRevert': True}],
+        'body': [
+            {'hash': user_tx_hash},
+            {'tx': backrun_signed_tx.hex(), 'can_revert': True}
+        ],
         'privacy': {
             'hints': {
                 'tx_hash': True,
@@ -256,7 +241,11 @@ Get information about the event history endpoint for use in get_event_history.
 ```python
 import asyncio
 from mev_share_py.client import MevShareClient
-client = MevShareClient.from_config('goerli', '../config.json')
+client = MevShareClient(api_url='<RPC_url>', #  "https://relay-goerli.flashbots.net/",
+                        stream_url='<SSE_url>',  #  "https://mev-share-goerli.flashbots.net/",
+                        sign_key='<sign_key>',  #  Private key to sign the bundle
+                        node_url='<node_url>'  #  Geth node url
+                        )
 history_info = asyncio.run(client.get_event_history_info())
 ```
 

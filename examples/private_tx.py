@@ -47,10 +47,19 @@ async def loop_tx():
     Set the wallet and node settings in config.json
     :return:
     """
-    client = MevShareClient.from_config(network='goerli', config_dir='../config.json')
+    client = MevShareClient(api_url='<RPC_url>', #  "https://relay-goerli.flashbots.net/",
+                            stream_url='<SSE_url>',  #  "https://mev-share-goerli.flashbots.net/",
+                            sign_key='<sign_key>',  #  Private key to sign the bundle
+                            node_url='<node_url>'  #  Geth node url
+                            )
+    private_key = '<private_key>
+    to_address = '<to_address>'
     while True:
         # pylint: disable=redefined-outer-name
-        tx = new_tx(client.w3, 0, client.config['private_key'], client.config['to'])
+        tx = new_tx(client.w3,
+                    0,
+                    private_key,
+                    to_address)
         print(tx)
         print(await client.send_transaction(
             tx.rawTransaction.hex(),
@@ -64,7 +73,8 @@ async def loop_tx():
                 }
             }
         ))
-        await asyncio.sleep(300)
+        # await client.w3_async.eth.send_raw_transaction(tx.rawTransaction.hex())
+        await asyncio.sleep(300) # 5min loop
 
 
 if __name__ == "__main__":
