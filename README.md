@@ -274,6 +274,7 @@ his = asyncio.run(client.get_event_history(params=params))
 ## Examples
 
 All examples are located in the [```examples```](./examples) directory.
+Before running the scripts, make sure to set the environment variables.
 
 ## Contributing
 
@@ -303,11 +304,15 @@ SOFTWARE.
 
 
 ## Acknowledgments
+I would like to express my gratitude to the following individuals and organizations who have contributed to this project:
+### Contributors
+- Brock Smedley ([@zeroXbrock](https://github.com/zeroXbrock)) - Oversaw the project and provided valuable feedback.
+- Flashbots ([@flashbots](https://www.flashbots.net/) Organization that provided the initial idea and specifications for the project.
 
-## FAQs
-
-## Troubleshooting
+### External Libraries and Dependencies
+- [aiohttp-sse-client](https://pypi.org/project/aiohttp-sse-client/) - By [Jason Hu](awaregit@gmail.com)
+- [web3.py](https://github.com/ethereum/web3.py) - By [Ethereum Foundation](https://ethereum.org/en/)
 
 ## Contact
 
-For questions or feedback, contact ziga.mrzljak@gmail.com
+For questions or feedback, contact ziga.mrzljak@gmail.com or ask in Flashbots [Discord](https://discord.com/channels/755466764501909692/1098658519676371045)

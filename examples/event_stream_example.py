@@ -4,6 +4,7 @@ prints out the first 5 characters of the block hash for each event.
 """
 
 import datetime as dt
+import os
 import asyncio
 from mev_share_py.client import MevShareClient
 from mev_share_py.api.events import PendingTransaction

@@ -1,6 +1,21 @@
 import asyncio
+import os
 from web3 import Web3
 from mev_share_py.client import MevShareClient
+
+
+# Set environment variables before running this script
+try:
+    private_key = os.environ.get('PRIVATE_KEY')
+    to = os.environ.get('TO_ADDRESS')
+    api_url = os.environ.get('API_URL')
+    stream_url = os.environ.get('STREAM_URL')
+    sign_key = os.environ.get('SIGN_KEY')
+    node_url = os.environ.get('NODE_URL')
+except KeyError as e:
+    print(f"Please set the environment variable {e}")
+    exit(1)
+
 
 
 def new_tx(w3,
@@ -47,19 +62,18 @@ async def loop_tx():
     Set the wallet and node settings in config.json
     :return:
     """
-    client = MevShareClient(api_url='<RPC_url>', #  "https://relay-goerli.flashbots.net/",
-                            stream_url='<SSE_url>',  #  "https://mev-share-goerli.flashbots.net/",
-                            sign_key='<sign_key>',  #  Private key to sign the bundle
-                            node_url='<node_url>'  #  Geth node url
+    client = MevShareClient(api_url=api_url, #  "https://relay-goerli.flashbots.net/",
+                            stream_url=stream_url,  #  "https://mev-share-goerli.flashbots.net/",
+                            sign_key=sign_key,  #  Private key to sign the bundle
+                            node_url=node_url  #  Geth node url
                             )
-    private_key = '<private_key>
-    to_address = '<to_address>'
+
     while True:
         # pylint: disable=redefined-outer-name
         tx = new_tx(client.w3,
                     0,
                     private_key,
-                    to_address)
+                    to)
         print(tx)
         print(await client.send_transaction(
             tx.rawTransaction.hex(),

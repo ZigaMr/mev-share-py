@@ -1,19 +1,29 @@
 # pylint: disable=missing-module-docstring
 import asyncio
+import os
 from examples.private_tx import new_tx
 from mev_share_py.client import MevShareClient
 from mev_share_py.api.types import BundleParams
 from mev_share_py.api.events import PendingTransaction
 
 
+# Set environment variables before running this script
+try:
+    private_key = os.environ.get('PRIVATE_KEY')
+    to = os.environ.get('TO_ADDRESS')
+    api_url = os.environ.get('API_URL')
+    stream_url = os.environ.get('STREAM_URL')
+    sign_key = os.environ.get('SIGN_KEY')
+    node_url = os.environ.get('NODE_URL')
+except KeyError as e:
+    print(f"Please set the environment variable {e}")
+    exit(1)
 
 async def build_and_send(tx: PendingTransaction, client: MevShareClient):
     """
     Generate a bundle containing private tx hash and backrun signed tx.
     :return:
     """
-    private_key = '<private_key>
-    to = '<to_address>'
     backrun_transaction = new_tx(client.w3, 0, private_key, to)  # Add raw tx here
 
     user_tx_hash = tx.hash
@@ -42,10 +52,10 @@ async def build_and_send(tx: PendingTransaction, client: MevShareClient):
     print(await client.send_bundle(params))
 
 if __name__ == "__main__":
-    client = MevShareClient(api_url='<RPC_url>', #  "https://relay-goerli.flashbots.net/",
-                            stream_url='<SSE_url>',  #  "https://mev-share-goerli.flashbots.net/",
-                            sign_key='<sign_key>',  #  Private key to sign the bundle
-                            node_url='<node_url>' #  Geth node url
+    client = MevShareClient(api_url=api_url, #  "https://relay-goerli.flashbots.net/",
+                            stream_url=stream_url,  #  "https://mev-share-goerli.flashbots.net/",
+                            sign_key=sign_key,  #  Private key to sign the bundle
+                            node_url=node_url #  Geth node url
                             )
 
     res = asyncio.run(
