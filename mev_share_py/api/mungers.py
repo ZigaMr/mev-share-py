@@ -1,3 +1,6 @@
+"""
+Mungers are used to transform python notation into the format expected by the MEV-Share API.
+"""
 from typing import Optional, Dict, List
 from mev_share_py.api.types import TransactionOptions, BundleParams
 

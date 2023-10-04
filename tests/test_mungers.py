@@ -1,3 +1,6 @@
+"""
+Test the mungers.
+"""
 import unittest
 from mev_share_py.api.mungers import (
     munge_private_tx_params,
@@ -9,7 +12,7 @@ from mev_share_py.api.types import (
     BundleParams,
     SimBundleOptions
 )
-
+# pylint: disable=duplicate-code
 class TestMungers(unittest.TestCase):
     """
     Test the mungers.

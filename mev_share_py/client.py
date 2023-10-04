@@ -1,10 +1,12 @@
-import json
+"""
+Client library for interacting with the MEV-Share API and event stream.
+"""
 from typing import Callable
 import asyncio
 import sys
-from aiohttp_sse_client.client import MessageEvent
 import warnings
 
+from aiohttp_sse_client.client import MessageEvent
 from mev_share_py.client_rpc import RPCClient
 from mev_share_py.event_stream import SSEClient
 
@@ -14,7 +16,7 @@ class MevShareClient(RPCClient, SSEClient):
     Wrapper class for interacting with the MEV-Share API and event stream.
     """
     def __init__(self,
-                 api_url: str = None,
+                 rpc_url: str = None,
                  stream_url: str = None,
                  sign_key: str = None,
                  node_url: str = None,
@@ -26,14 +28,14 @@ class MevShareClient(RPCClient, SSEClient):
         if node_url is None:
             warnings.warn("No node_url parameter provided.")
 
-        if api_url is None:
-            warnings.warn("No api_url parameter provided.")
+        if rpc_url is None:
+            warnings.warn("No rpc_url parameter provided.")
 
         if stream_url is None:
             warnings.warn("No stream_url parameter provided.")
 
         # Multiple inheritance
-        super().__init__(api_url=api_url,
+        super().__init__(rpc_url=rpc_url,
                          sign_key=sign_key,
                          node_url=node_url,
                          stream_url=stream_url)

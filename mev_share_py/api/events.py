@@ -1,3 +1,6 @@
+"""
+Data classes for events.
+"""
 from dataclasses import dataclass
 from typing import Optional, List
 

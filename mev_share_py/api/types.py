@@ -1,3 +1,6 @@
+"""
+This module contains type definitions for the MEV-Share API.
+"""
 from typing import List, Optional, TypedDict, Union
 
 HintPreferences = TypedDict(

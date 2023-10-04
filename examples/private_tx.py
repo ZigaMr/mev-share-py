@@ -1,26 +1,30 @@
+"""
+This example shows how to send a private transaction to the relay.
+"""
 import asyncio
 import os
+import sys
 from web3 import Web3
 from mev_share_py.client import MevShareClient
 
-
+# pylint: disable=duplicate-code
 # Set environment variables before running this script
 try:
     private_key = os.environ.get('PRIVATE_KEY')
     to = os.environ.get('TO_ADDRESS')
-    api_url = os.environ.get('API_URL')
+    rpc_url = os.environ.get('RPC_URL')
     stream_url = os.environ.get('STREAM_URL')
     sign_key = os.environ.get('SIGN_KEY')
     node_url = os.environ.get('NODE_URL')
 except KeyError as e:
     print(f"Please set the environment variable {e}")
-    exit(1)
+    sys.exit(1)
 
 
 
 def new_tx(w3,
            nonce_add=0,
-           private_key='0x',
+           private_key='0x', # pylint: disable=redefined-outer-name
            to_address='0x', ):
     """
     Creates a new transaction with the given parameters.
@@ -62,7 +66,7 @@ async def loop_tx():
     Set the wallet and node settings in config.json
     :return:
     """
-    client = MevShareClient(api_url=api_url, #  "https://relay-goerli.flashbots.net/",
+    client = MevShareClient(rpc_url=rpc_url, #  "https://relay-goerli.flashbots.net/",
                             stream_url=stream_url,  #  "https://mev-share-goerli.flashbots.net/",
                             sign_key=sign_key,  #  Private key to sign the bundle
                             node_url=node_url  #  Geth node url

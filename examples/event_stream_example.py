@@ -4,13 +4,12 @@ prints out the first 5 characters of the block hash for each event.
 """
 
 import datetime as dt
-import os
 import asyncio
 from mev_share_py.client import MevShareClient
 from mev_share_py.api.events import PendingTransaction
 
 
-async def handle_event(event_data: PendingTransaction, client: MevShareClient) -> None:
+async def handle_event(event_data: PendingTransaction, **kwargs) -> None: # pylint: disable=unused-argument
     """
     Custom function to be called for each event.
     :param event_data: Message Event from the event stream.

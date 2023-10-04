@@ -1,3 +1,6 @@
+"""
+Unit tests for the SSE client
+"""
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
@@ -6,8 +9,11 @@ from web3 import Web3
 from aiounittest import AsyncTestCase
 from mev_share_py.client import MevShareClient
 
-
+# pylint: disable=duplicate-code
 class MockServerHandler(BaseHTTPRequestHandler):
+    """
+    Mock server handler
+    """
     # pylint: disable=invalid-name
     def do_GET(self): # pylint: disable=invalid-name
         """
@@ -74,7 +80,7 @@ class TestMockServer(AsyncTestCase):
         self.server_url = "http://localhost:8080"
         w3 = Web3(Web3.HTTPProvider('')) # pylint: disable=invalid-name
         account = w3.eth.account.create()  # Create a random wallet
-        self.client = MevShareClient(api_url=self.server_url,
+        self.client = MevShareClient(rpc_url=self.server_url,
                                      stream_url=self.server_url,
                                      sign_key=account._private_key.hex(), # pylint: disable=protected-access
                                      node_url='')
@@ -102,6 +108,3 @@ class TestMockServer(AsyncTestCase):
         self.assertEqual(response[0]['block'], 1)
         self.assertEqual(response[0]['timestamp'], 2)
         self.assertEqual(response[0]['hint']['hash'], '0x123')
-
-
-

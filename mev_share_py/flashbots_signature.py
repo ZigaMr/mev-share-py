@@ -1,3 +1,6 @@
+"""
+This module contains the function to generate a request for the Flashbots RPC endpoint.
+"""
 import json
 from typing import List, Dict
 

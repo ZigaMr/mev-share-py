@@ -8,6 +8,7 @@ from aiounittest import AsyncTestCase
 from mev_share_py.client import MevShareClient
 from mev_share_py.api.types import BundleParams
 
+# pylint: disable=duplicate-code
 class MockServerHandler(BaseHTTPRequestHandler):
     """
     Mock server handler
@@ -55,7 +56,7 @@ class TestMockServer(AsyncTestCase):
         self.server_url = "http://localhost:8080"
         w3 = Web3(Web3.HTTPProvider('')) # pylint: disable=invalid-name
         account = w3.eth.account.create()  # Create a random wallet
-        self.client = MevShareClient(api_url=self.server_url,
+        self.client = MevShareClient(rpc_url=self.server_url,
                                      stream_url=self.server_url,
                                      sign_key=account._private_key.hex(),  # pylint: disable=protected-access
                                      node_url='')

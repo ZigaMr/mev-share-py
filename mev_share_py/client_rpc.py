@@ -1,3 +1,6 @@
+"""
+Client for interacting with the mev-share JSON-RPC API
+"""
 import json
 from rlp import encode
 from eth_utils import to_bytes
@@ -18,11 +21,11 @@ class RPCClient:
     """
 
     def __init__(self,
-                 api_url: str,
+                 rpc_url: str,
                  sign_key: str = None,
                  node_url: str = None,
                  **kwargs):
-        self.api_url = api_url
+        self.rpc_url = rpc_url
         self.account = Account.from_key(sign_key) if sign_key else None  # pylint: disable=no-value-for-parameter
         self.w3 = Web3(Web3.HTTPProvider(node_url)) if node_url else None
         self.w3_async = Web3(
@@ -39,7 +42,7 @@ class RPCClient:
                                                  self.account,
                                                  "1")
         print(body)
-        return requests.post(url=self.api_url,
+        return requests.post(url=self.rpc_url,
                              data=json.dumps(body),
                              headers=headers,
                              timeout=300).json()
@@ -52,10 +55,22 @@ class RPCClient:
         """
 
         to_as_bytes = to_bytes(hexstr=tx["to"])
-        encoded_tx = "0x02" + encode(
-            [tx['chainId'], tx['nonce'], tx['maxPriorityFeePerGas'],
-             tx['maxFeePerGas'], tx['gas'], to_as_bytes, tx['value'],
-             tx['input'], tx['accessList'], tx['v'], tx['r'], tx['s']]).hex()
+        # Legacy
+        if tx['type'] == 0:
+            encoded_tx = '0x' + encode(
+                [tx['nonce'], tx['gasPrice'], tx['gas'], to_as_bytes,
+                 tx['value'], tx['input'], tx['v'], tx['r'], tx['s']]).hex()
+        # AccessList
+        elif tx['type'] == 1:
+            encoded_tx = '0x01' + encode(
+                [tx['chainId'], tx['nonce'], tx['gasPrice'], tx['gas'], to_as_bytes, tx['value'],
+                 tx['input'], tx['accessList'], tx['v'], tx['r'], tx['s']]).hex()
+        # EIP-1559
+        elif tx['type'] == 2:
+            encoded_tx = "0x02" + encode(
+                [tx['chainId'], tx['nonce'], tx['maxPriorityFeePerGas'],
+                 tx['maxFeePerGas'], tx['gas'], to_as_bytes, tx['value'],
+                 tx['input'], tx['accessList'], tx['v'], tx['r'], tx['s']]).hex()
         return encoded_tx
 
     async def send_transaction(self,
@@ -98,7 +113,14 @@ class RPCClient:
                 raise AttributeError("Node URL must be provided to simulate bundle")
             _ = await self.w3_async.eth.wait_for_transaction_receipt(first_tx['hash'])
             web3_tx = await self.w3_async.eth.get_transaction(first_tx['hash'])
-            signed_tx = self._rlp_encode(web3_tx)
+
+            # RLP encode the transaction, throw error if type is not supported or arguments missing
+            try:
+                signed_tx = self._rlp_encode(web3_tx)
+            except Exception as e: # pylint: disable=broad-except
+                print(e)
+                return
+
             print("Transaction hash: " + first_tx['hash']
                   + " confirmed, proceeding with simulation")
             sim_options['parent_block'] = sim_options['parent_block'] \
@@ -107,9 +129,9 @@ class RPCClient:
             params_with_signed_tx['body'][0] = {'tx': signed_tx}
 
             return await self.__handle_request(
-                [                    dict(munge_bundle_params(params_with_signed_tx)[0],
-                         **munge_sim_bundle_options(sim_options))
-                ], "mev_simBundle")
+                [dict(munge_bundle_params(params_with_signed_tx)[0],
+                      **munge_sim_bundle_options(sim_options))
+                 ], "mev_simBundle")
         return await self.__handle_request(
             [
                 dict(munge_bundle_params(params)[0],
